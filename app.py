@@ -24,13 +24,19 @@ app.register_blueprint(web)
 
 
 
-# Database configuration
+# Database configuration (uses env vars for cloud, falls back to localhost for local dev)
 db_config = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "prediksi_svr",
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "user": os.environ.get("DB_USER", "root"),
+    "password": os.environ.get("DB_PASSWORD", ""),
+    "database": os.environ.get("DB_NAME", "prediksi_svr"),
+    "port": int(os.environ.get("DB_PORT", 3306)),
 }
+
+# Tambahkan SSL jika bukan localhost (untuk koneksi ke cloud database seperti Aiven)
+if db_config["host"] != "localhost":
+    db_config["ssl"] = {"ca": None}
+    db_config["ssl_verify_identity"] = False
 
 
 # Kolom yang diharapkan untuk upload file
@@ -2463,4 +2469,6 @@ def grafik_evaluasi_kategori():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "true").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)

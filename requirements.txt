@@ -10,3 +10,5 @@ matplotlib
 joblib
 bcrypt
 requests
+gunicorn
+cryptography

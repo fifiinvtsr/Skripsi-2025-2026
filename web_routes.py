@@ -13,11 +13,17 @@ from web_helpers import login_required, admin_required, BULAN_NAMES
 web = Blueprint('web', __name__)
 
 db_config = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "prediksi_svr",
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "user": os.environ.get("DB_USER", "root"),
+    "password": os.environ.get("DB_PASSWORD", ""),
+    "database": os.environ.get("DB_NAME", "prediksi_svr"),
+    "port": int(os.environ.get("DB_PORT", 3306)),
 }
+
+# Tambahkan SSL jika bukan localhost (untuk koneksi ke cloud database seperti Aiven)
+if db_config["host"] != "localhost":
+    db_config["ssl"] = {"ca": None}
+    db_config["ssl_verify_identity"] = False
 
 def get_conn():
     return pymysql.connect(**db_config, cursorclass=DictCursor)
@@ -262,7 +268,7 @@ def web_upload_data_awal():
         if file.filename:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/upload-data-awal', files={'file': (file.filename, file.stream, file.content_type)})
+                resp = req.post(f'{request.host_url}upload-data-awal', files={'file': (file.filename, file.stream, file.content_type)})
                 data = resp.json()
                 flash(data.get('message', 'Berhasil!') if data.get('status') == 'success' else data.get('message', 'Gagal'), 'success' if data.get('status') == 'success' else 'error')
             except Exception as e:
@@ -325,7 +331,7 @@ def web_upload_dataset_tes():
         if nama and tahun:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/dataset-TES', json={'nama_dataset': nama, 'tahun': [int(t) for t in tahun]})
+                resp = req.post(f'{request.host_url}dataset-TES', json={'nama_dataset': nama, 'tahun': [int(t) for t in tahun]})
                 data = resp.json()
                 flash(data.get('message', 'Berhasil!'), 'success' if data.get('status') == 'success' else 'error')
             except Exception as e:
@@ -369,7 +375,7 @@ def web_upload_dataset_mlp():
         if nama and tahun:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/dataset-xgboost', json={'nama_dataset': nama, 'tahun': [int(t) for t in tahun]})
+                resp = req.post(f'{request.host_url}dataset-xgboost', json={'nama_dataset': nama, 'tahun': [int(t) for t in tahun]})
                 data = resp.json()
                 flash(data.get('message', 'Berhasil!'), 'success' if data.get('status') == 'success' else 'error')
             except Exception as e:
@@ -446,7 +452,7 @@ def web_prediksi_tes():
         if nama_ds and nama_pred:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/prediksi', json={'nama_dataset': nama_ds, 'nama_prediksi': nama_pred})
+                resp = req.post(f'{request.host_url}prediksi', json={'nama_dataset': nama_ds, 'nama_prediksi': nama_pred})
                 data = resp.json()
                 if data.get('success') or data.get('status') == 'success':
                     flash('Prediksi berhasil!', 'success')
@@ -484,7 +490,7 @@ def web_prediksi_mlp():
         if nama_ds and nama:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/prediksi-xgboost', json={
+                resp = req.post(f'{request.host_url}prediksi-xgboost', json={
                     'nama_dataset': nama_ds, 'nama_prediksi': nama})
                 data = resp.json()
                 if data.get('success') or data.get('status') == 'success':
@@ -525,7 +531,7 @@ def web_prediksi_xgboost():
         if nama_ds and nama:
             import requests as req
             try:
-                resp = req.post('http://127.0.0.1:5000/prediksi-xgboost', json={
+                resp = req.post(f'{request.host_url}prediksi-xgboost', json={
                     'nama_dataset': nama_ds, 'nama_prediksi': nama})
                 data = resp.json()
                 if data.get('success') or data.get('status') == 'success':
