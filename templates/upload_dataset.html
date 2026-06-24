@@ -1,0 +1,214 @@
+{% extends "layouts/app.html" %}
+{% block styles %}
+<style>
+    .card-premium {
+        border: none;
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        overflow: hidden;
+    }
+    .card-premium:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.1);
+    }
+    .form-control-modern {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        background-color: #fcfcfc;
+        transition: all 0.2s;
+    }
+    .form-control-modern:focus {
+        border-color: #4b49ac;
+        box-shadow: 0 0 0 3px rgba(75, 73, 172, 0.1);
+        background-color: #fff;
+    }
+    .btn-check-premium:checked + .btn {
+        background-color: #4b49ac !important;
+        color: white !important;
+        border-color: #4b49ac !important;
+        box-shadow: 0 4px 6px rgba(75, 73, 172, 0.3);
+    }
+    .btn-check-premium + .btn {
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-color: #e0e0e0;
+        color: #6c757d;
+    }
+    .table-premium {
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+    .table-premium thead th {
+        border-top: none;
+        border-bottom: none;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        padding: 1rem;
+    }
+    .table-premium tbody tr {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        background-color: white;
+        transition: transform 0.2s;
+    }
+    .table-premium td {
+        padding: 1rem;
+        border: none;
+        vertical-align: middle;
+    }
+    .table-premium td:first-child {
+        border-top-left-radius: 1rem;
+        border-bottom-left-radius: 1rem;
+    }
+    .table-premium td:last-child {
+        border-top-right-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Form Input Dataset #}
+<div class="card card-premium mb-5">
+    <div class="card-body p-4">
+        <h4 class="fw-bold mb-1 text-dark"><i class="ti-package text-primary me-2"></i>{{ page_title }}</h4>
+        <p class="text-muted small mb-4">{{ page_subtitle }}</p>
+
+        <form method="POST" action="{{ form_action }}">
+            <div class="form-group mb-4">
+                <label for="namaDataset" class="fw-bold mb-2 text-secondary small text-uppercase">Nama Dataset</label>
+                <input type="text" id="namaDataset" name="nama_dataset" class="form-control form-control-modern"
+                    placeholder="Contoh: TES_2022_2023" required oninput="this.value = this.value.replace(/\s+/g, '_')">
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="fw-bold mb-2 text-secondary small text-uppercase d-block">Pilih Tahun</label>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for year in available_years %}
+                    <input type="checkbox" class="btn-check btn-check-premium" id="tahun-{{ year }}" name="tahun" value="{{ year }}" checked>
+                    <label class="btn btn-outline-light border" for="tahun-{{ year }}" style="color:#6c757d;">{{ year }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" style="background: linear-gradient(45deg, #4b49ac, #2c2a96); border: none;">
+                <i class="ti-wand me-2"></i>Proses & Kirim Data
+            </button>
+        </form>
+    </div>
+</div>
+
+{# Tabel Dataset Tersedia #}
+<div class="card card-premium">
+    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-dark mb-0"><i class="ti-list text-primary me-2"></i>10 Data Terbaru per Kecamatan</h5>
+        <button class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#deleteDatasetModal">
+            <i class="ti-trash me-1"></i> Opsi Hapus Dataset
+        </button>
+    </div>
+    <div class="card-body p-4">
+        {% if data_terbaru_grouped %}
+            {% for kecamatan, rows in data_terbaru_grouped.items() %}
+            <h6 class="fw-bold text-dark mt-3 mb-3">{{ kecamatan }}</h6>
+            <div class="table-responsive mb-4">
+                <table class="table table-premium table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nama Dataset</th>
+                            {% if table_name == 'dataset_xgboost' %}
+                            <th>Tahun</th>
+                            <th>Bulan</th>
+                            <th>SLA</th>
+                            <th>FASTER</th>
+                            <th>ONTIME</th>
+                            <th>OVERSLA</th>
+                            {% else %}
+                            <th>Tahun & Bulan</th>
+                            <th>SLA</th>
+                            {% endif %}
+                            <th>Jumlah Paket</th>
+                            {% if table_name != 'dataset_xgboost' %}
+                            <th>Waktu Upload</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rows %}
+                        <tr>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary border">{{ r.nama_dataset }}</span></td>
+                            {% if table_name == 'dataset_xgboost' %}
+                            <td>{{ r.Tahun }}</td>
+                            <td>{{ "{:02d}".format(r.Bulan) }}</td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                    {{ r.SLA }}
+                                </span>
+                            </td>
+                            <td>{{ "{:,}".format(r.FASTER) if r.FASTER is not none else '0' }}</td>
+                            <td>{{ "{:,}".format(r.ONTIME) if r.ONTIME is not none else '0' }}</td>
+                            <td>{{ "{:,}".format(r.OVERSLA) if r.OVERSLA is not none else '0' }}</td>
+                            {% else %}
+                            <td>{{ r.Tahun }}-{{ "{:02d}".format(r.Bulan) }}</td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                    {{ r.SLA }}
+                                </span>
+                            </td>
+                            {% endif %}
+                            <td class="fw-bold">{{ "{:,}".format(r.Jumlah_Paket) }}</td>
+                            {% if table_name != 'dataset_xgboost' %}
+                            <td class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="ti-folder mb-3 d-block" style="font-size: 2rem;"></i>
+            <p>Belum ada data dataset yang tersedia.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Dataset Modal -->
+<div class="modal fade" id="deleteDatasetModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:1.5rem;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-danger"><i class="ti-trash me-2"></i>Hapus Dataset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('web.web_delete_dataset') }}">
+                <input type="hidden" name="table_name" value="{{ table_name }}">
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-3">Pilih dataset yang ingin dihapus.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Nama Dataset</label>
+                        <select class="form-select form-control-modern" name="nama_dataset" required>
+                            <option value="">-- Pilih Dataset --</option>
+                            {% for ds in datasets_list %}
+                            <option value="{{ ds }}">{{ ds }}</option>
+                            {% endfor %}
+                            <option value="ALL">SEMUA DATASET</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Konfirmasi Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+<div>
+    <style>
+        .sidebar .nav .sub-menu .nav-item::before {
+            display: none !important;
+        }
+        .sidebar .nav .sub-menu {
+            list-style: none !important;
+        }
+    </style>
+    <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+            {% if session.get('role') == 'manager' %}
+                <li class="nav-item {{ 'active' if active_page == 'manager.dashboard' else '' }}">
+                    <a class="nav-link" href="{{ url_for('web.manager_dashboard') }}">
+                        <i class="icon-grid menu-icon"></i>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if session.get('role') == 'admin' %}
+                {% set isDatasetActive = active_page in ['upload.data.awal', 'upload.dataset.tes', 'upload.dataset.mlp'] %}
+                {% set isPrediksiActive = active_page in ['prediksi.tes', 'prediksi.mlp'] %}
+                {% set isHasilActive = active_page in ['hasil.prediksi.tes', 'hasil.prediksi.mlp'] %}
+
+                <li class="nav-item {{ 'active' if active_page == 'admin.dashboard' else '' }}">
+                    <a class="nav-link" href="{{ url_for('web.admin_dashboard') }}">
+                        <i class="icon-grid menu-icon"></i>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item {{ 'active' if active_page == 'users.index' else '' }}">
+                    <a class="nav-link" href="{{ url_for('web.user_management') }}">
+                        <i class="mdi mdi-account-supervisor-outline menu-icon"></i>
+                        <span class="menu-title">User Management</span>
+                    </a>
+                </li>
+
+                {# Dataset Menu #}
+                <li class="nav-item {{ 'active' if isDatasetActive else '' }}">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#dataset-menu" 
+                       aria-expanded="{{ 'true' if isDatasetActive else 'false' }}"
+                       aria-controls="dataset-menu">
+                        <i class="mdi mdi-database menu-icon"></i>
+                        <span class="menu-title">Dataset</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="collapse {{ 'show' if isDatasetActive else '' }}" id="dataset-menu">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'upload.data.awal' else '' }}" 
+                                   href="{{ url_for('web.web_upload_data_awal') }}"><i class="mdi mdi-cloud-upload me-2"></i>Upload Data Historis</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'upload.dataset.tes' else '' }}" 
+                                   href="{{ url_for('web.web_upload_dataset_tes') }}"><i class="mdi mdi-package-variant me-2"></i>Dataset TES</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'upload.dataset.mlp' else '' }}" 
+                                   href="{{ url_for('web.web_upload_dataset_mlp') }}"><i class="mdi mdi-clipboard-list me-2"></i>Dataset XGBoost regression</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                {# Prediksi Menu #}
+                <li class="nav-item {{ 'active' if isPrediksiActive else '' }}">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#prediksi-menu" 
+                       aria-expanded="{{ 'true' if isPrediksiActive else 'false' }}"
+                       aria-controls="prediksi-menu">
+                        <i class="mdi mdi-chart-timeline-variant menu-icon"></i>
+                        <span class="menu-title">Prediksi</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="collapse {{ 'show' if isPrediksiActive else '' }}" id="prediksi-menu">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'prediksi.tes' else '' }}" 
+                                   href="{{ url_for('web.web_prediksi_tes') }}"><i class="mdi mdi-package-variant-closed me-2"></i>Prediksi Paket</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'prediksi.mlp' else '' }}" 
+                                   href="{{ url_for('web.web_prediksi_mlp') }}"><i class="mdi mdi-clipboard-check me-2"></i>Prediksi Status SLA</a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+
+                {# Hasil Prediksi Menu #}
+                <li class="nav-item {{ 'active' if isHasilActive else '' }}">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#hasilPrediksiMenu" 
+                       aria-expanded="{{ 'true' if isHasilActive else 'false' }}"
+                       aria-controls="hasilPrediksiMenu">
+                        <i class="mdi mdi-file-document menu-icon"></i>
+                        <span class="menu-title">Hasil Prediksi</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="collapse {{ 'show' if isHasilActive else '' }}" id="hasilPrediksiMenu">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'hasil.prediksi.tes' else '' }}" 
+                                   href="{{ url_for('web.web_hasil_prediksi_tes') }}"><i class="mdi mdi-file-chart me-2"></i>Hasil Prediksi Paket</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if active_page == 'hasil.prediksi.mlp' else '' }}" 
+                                   href="{{ url_for('web.web_hasil_prediksi_mlp') }}"><i class="mdi mdi-file-check me-2"></i>Hasil Prediksi SLA</a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>

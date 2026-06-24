@@ -1,0 +1,12 @@
+flask
+flask-cors
+scikit-learn
+numpy
+pandas
+xgboost
+pymysql
+openpyxl
+matplotlib
+joblib
+bcrypt
+requests

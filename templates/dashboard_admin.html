@@ -1,0 +1,375 @@
+{% extends "layouts/app.html" %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --card-hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .card-premium { border: none; border-radius: 1rem; box-shadow: var(--card-shadow); transition: transform 0.3s ease, box-shadow 0.3s ease; background: #fff; overflow: hidden; }
+    .card-premium:hover { box-shadow: var(--card-hover-shadow); transform: translateY(-2px); }
+    .bg-gradient-primary { background: var(--primary-gradient) !important; color: white; }
+    .text-gradient { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+    .icon-container { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .form-select-modern { border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; }
+    .form-select-modern:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    .table-premium thead th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
+    .table-premium tbody tr:hover { background-color: #f1f5f9; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header & KPI Section -->
+<div class="mb-4">
+    <h2 class="fw-bold text-dark mb-4">Dashboard Analytics</h2>
+    {% if kpi_stats %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card card-premium h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-container bg-primary bg-opacity-10 text-primary me-3">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1 text-uppercase fw-bold">Total Prediksi</p>
+                        <h3 class="fw-bold mb-0 text-dark">{{ kpi_stats.total_predictions }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-premium h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-container bg-success bg-opacity-10 text-success me-3">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1 text-uppercase fw-bold">On-Time Rate</p>
+                        <h3 class="fw-bold mb-0 text-dark">{{ kpi_stats.overall_ontime }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-premium h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-container bg-info bg-opacity-10 text-info me-3">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-muted small mb-1 text-uppercase fw-bold">Performa Terbaik</p>
+                        <h5 class="fw-bold mb-0 text-dark text-truncate">{{ kpi_stats.best_kecamatan }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-premium h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-container bg-danger bg-opacity-10 text-danger me-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-muted small mb-1 text-uppercase fw-bold">Perlu Perhatian</p>
+                        <h5 class="fw-bold mb-0 text-dark text-truncate">{{ kpi_stats.worst_kecamatan }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Main Filter Section -->
+<div class="card card-premium mb-4">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4 text-gradient"><i class="bi bi-funnel-fill me-2"></i>Filter Data</h5>
+        <form method="GET" action="{{ url_for('web.admin_dashboard') }}">
+            <div class="row g-4">
+                <div class="col-md-6 border-end">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted small fw-bold">MODEL PREDIKSI (TES)</label>
+                            <select name="prediksi_tes" class="form-select form-select-modern" onchange="this.form.submit()">
+                                <option value="">-- Pilih Pengujian TES --</option>
+                                {% for nama in nama_prediksi_tes_list %}
+                                    <option value="{{ nama }}" {{ 'selected' if selected_prediksi_tes == nama else '' }}>{{ nama }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small fw-bold">MODEL PREDIKSI (XGBOOST REGRESSION)</label>
+                            <select name="prediksi_xgb" class="form-select form-select-modern" onchange="this.form.submit()">
+                                <option value="">-- Pilih Pengujian XGBoost --</option>
+                                {% for nama in nama_prediksi_xgb_list %}
+                                    <option value="{{ nama }}" {{ 'selected' if selected_prediksi_xgb == nama else '' }}>{{ nama }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row g-3">
+                        {% if selected_prediksi_tes and selected_prediksi_xgb %}
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">TAHUN</label>
+                                <select name="tahun" class="form-select form-select-modern" onchange="this.form.submit()">
+                                    <option value="">Semua Tahun</option>
+                                    {% for t in tahun_list %}
+                                        <option value="{{ t }}" {{ 'selected' if filter_tahun == t|string else '' }}>{{ t }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">BULAN</label>
+                                <select name="bulan" class="form-select form-select-modern" onchange="this.form.submit()">
+                                    <option value="">Semua Bulan</option>
+                                    {% for b in bulan_list %}
+                                        <option value="{{ b }}" {{ 'selected' if filter_bulan == b|string else '' }}>{{ bulan_names[b] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">KECAMATAN</label>
+                                <select name="kecamatan" class="form-select form-select-modern" onchange="this.form.submit()">
+                                    <option value="">Semua Kecamatan</option>
+                                    {% for k in kecamatan_list %}
+                                        <option value="{{ k }}" {{ 'selected' if filter_kecamatan == k else '' }}>{{ k }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">STATUS SLA</label>
+                                <select name="sla" class="form-select form-select-modern" onchange="this.form.submit()">
+                                    <option value="">Semua Status</option>
+                                    {% for s in sla_list %}
+                                        <option value="{{ s }}" {{ 'selected' if filter_sla == s else '' }}>{{ s }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 text-end mt-2">
+                                <a href="{{ url_for('web.admin_dashboard') }}" class="btn btn-outline-danger btn-sm rounded-pill px-4">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="col-12 d-flex align-items-center justify-content-center h-100 text-muted">
+                                <i class="bi bi-info-circle me-2"></i> Silakan pilih kedua model prediksi untuk melihat filter.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% if chart_payload %}
+    <!-- Prediksi & SLA Section -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center mb-4 mt-2">
+            <div class="icon-container me-3" style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); width: 42px; height: 42px;">
+                <i class="bi bi-bar-chart-fill text-white" style="font-size: 1.2rem;"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold text-dark mb-0">Distribusi Kepadatan Paket & Status SLA</h4>
+                <p class="text-muted small mb-0">Visualisasi jumlah paket pada kategori On-time, Faster, dan Over SLA di setiap kecamatan</p>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card card-premium">
+                    <div class="card-body pt-3">
+                        <div style="position: relative; height: 400px;">
+                            <canvas id="stackedBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card card-premium">
+                    <div class="card-body pt-3">
+                        <div style="position: relative; height: 400px;">
+                            <canvas id="groupedBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if pengujian_payload %}
+    <div class="mb-4">
+        <!-- Perbandingan per Kecamatan Section -->
+        <div class="d-flex align-items-center mb-3 mt-4">
+            <div class="icon-container me-3" style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); width: 38px; height: 38px;">
+                <i class="bi bi-geo-alt-fill text-white" style="font-size: 1rem;"></i>
+            </div>
+            <div>
+                <h5 class="fw-bold text-dark mb-0">Perbandingan per Kecamatan</h5>
+                <p class="text-muted small mb-0">Evaluasi MAPE dan RMSE untuk 3 kategori di 5 kecamatan</p>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card card-premium">
+                    <div class="card-body pt-3">
+                        <div style="position: relative; height: 380px;">
+                            <canvas id="kecamatanMapeChart"></canvas>
+                        </div>
+                        <hr class="my-3" style="border-color: #e5e7eb;">
+                        <div style="position: relative; height: 380px;">
+                            <canvas id="kecamatanRmseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script>
+    // Register the plugin to all charts
+    Chart.register(ChartDataLabels);
+
+    const chartPayload = {{ chart_payload|tojson }};
+
+    const pengujianPayload = {% if pengujian_payload %}{{ pengujian_payload|tojson }}{% else %}null{% endif %};
+
+    function renderKecamatanCharts(data) {
+        if (!data) return;
+        const labels = data.labels;
+        
+        // MAPE
+        const ctxMape = document.getElementById('kecamatanMapeChart');
+        if (ctxMape) {
+            new Chart(ctxMape, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'On-time', backgroundColor: '#3B82F6', data: data.ontime.mape },
+                        { label: 'Faster', backgroundColor: '#10B981', data: data.faster.mape },
+                        { label: 'OverSLA', backgroundColor: '#EF4444', data: data.oversla.mape }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Perbandingan MAPE - 5 Kecamatan', font: { size: 16 } },
+                        datalabels: {
+                            anchor: 'end', align: 'end',
+                            formatter: (value) => value + '%',
+                            font: { weight: 'bold', size: 10 }
+                        }
+                    },
+                    scales: { y: { title: { display: true, text: 'MAPE (%)' }, beginAtZero: true, grace: '15%' } }
+                }
+            });
+        }
+
+        // RMSE
+        const ctxRmse = document.getElementById('kecamatanRmseChart');
+        if (ctxRmse) {
+            new Chart(ctxRmse, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'On-time', backgroundColor: '#3B82F6', data: data.ontime.rmse },
+                        { label: 'Faster', backgroundColor: '#10B981', data: data.faster.rmse },
+                        { label: 'OverSLA', backgroundColor: '#EF4444', data: data.oversla.rmse }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Perbandingan RMSE - 5 Kecamatan', font: { size: 16 } },
+                        datalabels: {
+                            anchor: 'end', align: 'end',
+                            formatter: (value) => value,
+                            font: { weight: 'bold', size: 10 }
+                        }
+                    },
+                    scales: { y: { title: { display: true, text: 'RMSE' }, beginAtZero: true, grace: '15%' } }
+                }
+            });
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        if (chartPayload) {
+            if (chartPayload.stackedBar) {
+                new Chart(document.getElementById('stackedBarChart'), {
+                    type: 'bar',
+                    data: chartPayload.stackedBar,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Prediksi Kepadatan Paket', font: { size: 16 } },
+                            tooltip: { mode: 'index', intersect: false },
+                            datalabels: {
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 11 },
+                                formatter: (value) => value > 0 ? value.toLocaleString() : ''
+                            }
+                        },
+                        scales: {
+                            x: { stacked: true },
+                            y: { stacked: true, beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            if (chartPayload.groupedBar) {
+                new Chart(document.getElementById('groupedBarChart'), {
+                    type: 'bar',
+                    data: chartPayload.groupedBar,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Status SLA per Kecamatan', font: { size: 16 } },
+                            tooltip: { mode: 'index', intersect: false },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: { stacked: false },
+                            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Jumlah Paket' } },
+                            y1: { type: 'linear', position: 'right', beginAtZero: true, max: 100, title: { display: true, text: 'Persentase (%)' }, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Render kecamatan comparison charts
+        if (typeof pengujianPayload !== 'undefined' && pengujianPayload && pengujianPayload.eval_kecamatan) {
+            renderKecamatanCharts(pengujianPayload.eval_kecamatan);
+        }
+    });
+</script>
+{% endblock %}

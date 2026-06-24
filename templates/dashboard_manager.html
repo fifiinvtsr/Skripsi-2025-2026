@@ -1,0 +1,10 @@
+{% extends "layouts/app.html" %}
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold text-dark mb-4">Dashboard Manager</h2>
+    <div class="alert alert-info d-flex align-items-center shadow-sm border-0" style="border-radius:1rem;">
+        <i class="ti-info-alt fs-4 me-3 text-info"></i>
+        <div>Selamat datang, <strong>{{ session.get('name', 'Manager') }}</strong>. Anda login sebagai Manager.</div>
+    </div>
+</div>
+{% endblock %}
